@@ -5,39 +5,51 @@ const app = express();
 const port = 3000;
 app.use(express.json())
 
-const {conexao, canal} = await conectar();
+const { conexao, canal } = await conectar();
 
 app.post('/cep', (req, res) => {
-    const cep = req.body?.cep;
+    const ceps = req.body?.ceps;
 
-    if (!cep) {
-        return res.status(400).json({erro: 'O CEP é obrigatório'});
+    if (!Array.isArray(ceps) || ceps.length === 0) {
+        return res.status(400).json({ erro: "O corpo da requisição deve ser uma lista (array)." });
     }
 
-    if (typeof cep !== 'string' || !/^\d{5}-?\d{3}$/.test(cep)){
-        return res.status(400).json({erro: 'CEP inválido'})
+    const cepsValidos = [];
+    const cepsInvalidos = [];
+    for (const cep of ceps) {
+        if (typeof cep !== 'string' || !/^\d{5}-?\d{3}$/.test(cep)) {
+            cepsInvalidos.push({ cep, motivo: 'formato inválido' });
+            continue;
+        }
+        const cepLimpo = cep.replace('-', '');
+
+        const id = adicionarCep(cepLimpo);
+        publicarConsulta(canal, id);
+        cepsValidos.push({id, cepLimpo});
+    };
+
+    if(cepsValidos.length >= 1){
+        return res.status(202).json({
+            cepsProcessados: cepsValidos,
+            erros: cepsInvalidos
+        });
+    }else {
+        return res.status(400).json({
+            erros: cepsInvalidos
+        });
     }
-    const cepLimpo = cep.replace('-', '');
-
-    const id = adicionarCep(cepLimpo);
-    publicarConsulta(canal, id);
-
-    return res.status(202).json({
-        mensagem: 'CEP recebido com sucesso',
-        id: id
-    })
 })
 
 app.get('/cep/:id', (req, res) => {
     const id = req.params?.id;
 
-    if(!id){
-        return res.status(400).json({erro: 'ID do CEP é obrigatório'})
+    if (!id) {
+        return res.status(400).json({ erro: 'ID do CEP é obrigatório' })
     }
 
     const cep = buscarCep(id);
-    if(!cep){
-        return res.status(404).json({erro: 'CEP não encontrado'})
+    if (!cep) {
+        return res.status(404).json({ erro: 'CEP não encontrado' })
     }
 
     return res.status(200).json({
