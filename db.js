@@ -1,6 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 
 const db = new DatabaseSync('ceps.db');
+// Configura o journal_mode para WAL (Write-Ahead Logging)
+db.exec('PRAGMA journal_mode = WAL;');
+// Configura o busy_timeout para 5000 milissegundos (5 segundos)
+db.exec('PRAGMA busy_timeout = 5000;');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS ceps (

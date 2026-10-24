@@ -1,1 +1,4 @@
 node_modules
+ceps.db
+ceps.db-shm
+ceps.db-wal

@@ -1,10 +1,12 @@
 {
   "name": "aulafilas",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
-  "main": "index.js",
+  "main": "api.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "api": "node api.js",
+    "worker": "node worker.js"
   },
   "keywords": [],
   "author": "",
